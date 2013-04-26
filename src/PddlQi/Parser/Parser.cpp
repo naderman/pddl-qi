@@ -13,5 +13,5 @@ using namespace PddlQi;
 
 int Parser::foo()
 {
-    return 0;
+    return 1;
 }

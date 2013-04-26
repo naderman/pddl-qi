@@ -17,5 +17,5 @@
 BOOST_AUTO_TEST_CASE(ParserTest)
 {
     PddlQi::Parser p;
-    BOOST_CHECK_EQUAL(p.foo(), 0);
+    BOOST_CHECK_EQUAL(p.foo(), 1);
 }
