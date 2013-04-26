@@ -1,2 +1,2 @@
 language: cpp
-script: cd build && cmake .. && make && make test
+script: BOOST_ROOT=/usr cd build && cmake .. && make && make test
