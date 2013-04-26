@@ -1,0 +1,13 @@
+/*! \mainpage
+ *
+ * \section purpose Purpose
+ *
+ * \section overview Overview
+ * 
+ * \par Libraries
+ * @PROJECT_NAME@ provides the following libraries
+ * - LibraryName: Library description
+ * 
+ * \par Applications
+ * - ApplicationName: Description of ApplicationName
+ */

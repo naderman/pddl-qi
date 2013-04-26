@@ -1,0 +1,51 @@
+# Template for a project's @PROJECT_NAME@Config.cmake file
+# See http://www.vtk.org/Wiki/CMake/Tutorials/How_to_create_a_ProjectConfig.cmake_file
+
+# - Config file for the Library package
+# It defines the following variables
+#  @PROJECT_NAME@_INCLUDE_DIRS   - include directories for @PROJECT_NAME@
+#  @PROJECT_NAME@_LIBRARY_DIRS   - library directories for @PROJECT_NAME@ (normally not used!)
+#  @PROJECT_NAME@_CMAKE_DIR      - special CMake files for @PROJECT_NAME@
+#  @PROJECT_NAME@_LIBRARIES      - libraries to link against
+#  @PROJECT_NAME@_BINARY_DIR      - directory where executables are located
+#  @PROJECT_NAME@_EXECUTABLE     - list of executables
+#  @PROJECT_NAME@_TEMPLATES_DIR  - directory pointing to project specific templates
+
+# Get path to this file
+get_filename_component(@PROJECT_NAME@_CURRENT_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+
+if(EXISTS "${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/CMakeCache.txt")
+    # In build tree
+    message(STATUS "Using @PROJECT_NAME@ Source SDK from: ${@PROJECT_NAME@_CURRENT_CMAKE_DIR}")
+    include("${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/@PROJECT_NAME@BuildTreeSettings.cmake")
+else()
+    # Installed project
+    message(STATUS "Using @PROJECT_NAME@ Binary SDK from: ${@PROJECT_NAME@_CURRENT_CMAKE_DIR}")
+    # Tell the user project where to find our headers and libraries
+    set(@PROJECT_NAME@_INCLUDE_DIRS "")
+    foreach (INCLUDE_DIR @PROJECT_INCLUDE_DIRS@)
+        set(@PROJECT_NAME@_INCLUDE_DIRS ${@PROJECT_NAME@_INCLUDE_DIRS} "${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/@RELATIVE_BASE_DIR@/${INCLUDE_DIR}")
+    endforeach ()
+    message(STATUS "Using @PROJECT_NAME@ Binary SDK include: ${@PROJECT_NAME@_INCLUDE_DIRS}")
+    set(@PROJECT_NAME@_LIBRARY_DIRS "${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/@RELATIVE_BASE_DIR@/@PROJECT_LIB_DIR@")
+    message(STATUS "Using @PROJECT_NAME@ Binary SDK libdirs: ${@PROJECT_NAME@_LIBRARY_DIRS}")
+    set(@PROJECT_NAME@_BINARY_DIR "${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/@RELATIVE_BASE_DIR@/@PROJECT_BIN_DIR@")
+    message(STATUS "Using @PROJECT_NAME@ Binary SDK bindir:  ${@PROJECT_NAME@_BINARY_DIR}")
+
+    set(@PROJECT_NAME@_CMAKE_DIR "${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/@RELATIVE_BASE_DIR@/@PROJECT_INSTALL_CMAKE_DIR@")
+    message(STATUS "Using @PROJECT_NAME@ Binary SDK cmake: ${@PROJECT_NAME@_CMAKE_DIR}")
+
+    set(@PROJECT_NAME@_TEMPLATES_DIR "${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/@RELATIVE_BASE_DIR@/@PROJECT_INSTALL_TEMPLATES_DIR@")
+    message(STATUS "Using @PROJECT_NAME@ Binary SDK templates: ${@PROJECT_NAME@_TEMPLATES_DIR}")
+endif()
+
+# Our library dependencies (contains definitions for IMPORTED targets)
+if(EXISTS "${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/@PROJECT_NAME@LibraryDepends.cmake")
+    include("${@PROJECT_NAME@_CURRENT_CMAKE_DIR}/@PROJECT_NAME@LibraryDepends.cmake")
+endif()
+
+# These are IMPORTED targets created by @PROJECT_NAME@LibraryDepends.cmake
+set(@PROJECT_NAME@_LIBRARIES "@PROJECT_LIBS@")
+
+set(@PROJECT_NAME@_EXECUTABLE "@PROJECT_EXES@")
+

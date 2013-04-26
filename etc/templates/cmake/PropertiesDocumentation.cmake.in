@@ -1,0 +1,39 @@
+
+# store the necessary variables since this script is run outside the normal CMake phase
+# and the variables would be undefined upon execution
+set(PROJECT_NAME "@PROJECT_NAME@")
+set(PROJECT_SOURCE_DIR "@PROJECT_SOURCE_DIR@")
+set(PROJECT_BIN_DIR "@PROJECT_BIN_DIR@")
+set(PROJECT_EXES "@PROJECT_EXES@")
+set(PROJECT_BINARY_DIR "@PROJECT_BINARY_DIR@")
+set(PROJECT_PROPERTY_DOX_FILE "@DOXYGEN_DOCUMENTATION_DIR@/propertydocs.dox")
+
+set(DOXYGEN_DOCUMENTATION_PAGES_DIR "@DOXYGEN_DOCUMENTATION_PAGES_DIR@")
+set(DOXYGEN_DOCUMENTATION_IMAGE_DIR "@DOXYGEN_DOCUMENTATION_IMAGE_DIR@")
+set(DOXYGEN_DOCUMENTATION_SNIPPET_DIR "@DOXYGEN_DOCUMENTATION_SNIPPET_DIR@")
+set(DOXYGEN_DOCUMENTATION_HTML_OUTPUT_DIR_REL "@DOXYGEN_DOCUMENTATION_HTML_OUTPUT_DIR_REL@")
+set(DOXYGEN_DOCUMENTATION_LAYOUT_DIR_REL "@DOXYGEN_DOCUMENTATION_LAYOUT_DIR@")
+set(DOXYGEN_CONFIG_FILE "@DOXYGEN_CONFIG_FILE@")
+set(DOXYGEN_CONFIG_TEMPLATE_FILE "@DOXYGEN_CONFIG_TEMPLATE_FILE@")
+
+if("${PROJECT_EXES}" STREQUAL "")
+    file(GLOB PROJECT_EXES RELATIVE ${PROJECT_BIN_DIR} ${PROJECT_BIN_DIR}/*Run)
+endif()
+
+# generate component properties doc
+file(WRITE ${PROJECT_PROPERTY_DOX_FILE} "")
+string(REPLACE " " ";" APP_EXECUTABLES "${PROJECT_EXES}")
+foreach(APP_EXECUTABLE ${APP_EXECUTABLES})
+    if(${APP_EXECUTABLE} MATCHES "(.+)Run$")
+        if(EXISTS "${PROJECT_BIN_DIR}/${APP_EXECUTABLE}")
+            message(STATUS "${PROJECT_BIN_DIR}/${APP_EXECUTABLE} --print-options --options-format=doxygen")
+            execute_process(COMMAND "${PROJECT_BIN_DIR}/${APP_EXECUTABLE}" --print-options --options-format=doxygen
+                            OUTPUT_VARIABLE DOC_CONTENT)
+
+            file(APPEND ${PROJECT_PROPERTY_DOX_FILE} "/**\n\\page componentproperties\n  - \\subpage ${CMAKE_MATCH_1}_properties\n*/\n")
+            file(APPEND ${PROJECT_PROPERTY_DOX_FILE} "/**\n\\page ${CMAKE_MATCH_1}_properties ${CMAKE_MATCH_1} Properties\n")
+            file(APPEND ${PROJECT_PROPERTY_DOX_FILE} "${DOC_CONTENT}")
+            file(APPEND ${PROJECT_PROPERTY_DOX_FILE} "\n*/\n")
+        endif()
+    endif()
+endforeach()

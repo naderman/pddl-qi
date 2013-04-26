@@ -1,0 +1,70 @@
+/**
+ * This file is part of PddlQi
+ *
+ * @copyright Nils Adermann <naderman@naderman.de>
+ *
+ * For the full copyright and licensing information please review the LICENSE
+ * file that was distributed with this source code.
+ */
+
+#ifndef @PROJECT_NAME@_TEST_H
+#define @PROJECT_NAME@_TEST_H
+
+#ifdef USE_BOOST_TEST
+    #ifdef WIN32
+        #include <boost/test/included/unit_test.hpp>
+    #else
+        #define BOOST_TEST_DYN_LINK
+        #include <boost/test/unit_test.hpp>
+    #endif
+#endif
+
+#include <string>
+#include <fstream>
+#include <iostream>
+
+#include <boost/iostreams/tee.hpp>
+#include <boost/iostreams/stream.hpp>
+
+namespace testout
+{
+    typedef boost::iostreams::tee_device<std::ostream, std::ostream> ostream_tee_device;
+    typedef boost::iostreams::stream<ostream_tee_device> tee_ostream;
+}
+
+struct OutputConfiguration
+{
+    OutputConfiguration()
+    {
+        // The path where the tests are put into is taken from CMake
+        std::string logFileName("@PROJECT_BIN_DIR@/");
+        logFileName.append(boost::unit_test::framework::master_test_suite().p_name);
+        logFileName.append(".xml");
+        logFile.open(logFileName.c_str());
+
+        tee = new testout::ostream_tee_device(std::cout, logFile);
+        teeStream = new testout::tee_ostream(*tee);
+
+        boost::unit_test::unit_test_log.set_stream(*teeStream);
+    }
+
+    ~OutputConfiguration()
+    {
+        boost::unit_test::unit_test_log.set_stream(std::cout);
+
+        teeStream->flush();
+
+        delete tee;
+        delete teeStream;
+
+        logFile << "</TestLog>" << std::flush;
+        logFile.close();
+    }
+    testout::ostream_tee_device* tee;
+    testout::tee_ostream* teeStream;
+    std::ofstream logFile;
+};
+
+BOOST_GLOBAL_FIXTURE(OutputConfiguration);
+
+#endif
