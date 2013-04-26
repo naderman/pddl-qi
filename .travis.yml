@@ -1,2 +1,4 @@
+before_script:
+    - sudo apt-get install -qq doxygen
 language: cpp
 script: BOOST_ROOT=/usr cd build && cmake .. && make && make test
