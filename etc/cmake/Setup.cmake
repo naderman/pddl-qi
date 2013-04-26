@@ -18,7 +18,7 @@ macro(setup_project NAME)
     # Boost
     MESSAGE(STATUS "Looking for Boost")
     set(Boost_USE_MULTITHREADED ON)
-    set(Boost_ADDITIONAL_VERSIONS "1.48.0" "1.48")
+    #set(Boost_ADDITIONAL_VERSIONS "1.48.0" "1.48")
     set(Boost_NO_SYSTEM_PATHS ON) # prevent mixing different Boost installations
     find_package(Boost 1.46)
     include_directories(${Boost_INCLUDE_DIR})
