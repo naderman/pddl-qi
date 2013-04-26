@@ -2,7 +2,7 @@
 option(BUILD_TESTS "Build tests" ON)
 
 if (BUILD_TESTS)
-    find_package(Boost 1.48 REQUIRED COMPONENTS unit_test_framework)
+    find_package(Boost 1.46 REQUIRED COMPONENTS unit_test_framework)
     link_directories(${Boost_LIBRARY_DIRS})
 
     enable_testing()
