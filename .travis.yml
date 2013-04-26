@@ -1,4 +1,5 @@
 before_script:
     - sudo apt-get install -qq doxygen
+    - sudo apt-get install -qq libboost-dev
 language: cpp
 script: BOOST_ROOT=/usr cd build && cmake .. && make && make test
