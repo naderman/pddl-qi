@@ -7,11 +7,24 @@
  * file that was distributed with this source code.
  */
 
+#include <PddlQi/Parser/PddlGrammar.h>
+#include <exception>
+
 namespace PddlQi
 {
+    class ParserException : std::exception
+    {
+        virtual const char* what() const throw()
+        {
+            return "Parser Exception";
+        }
+    };
+
     class Parser
     {
         public:
-            int foo();
+            typedef PddlGrammar<std::string::const_iterator> Pddl;
+
+            PddlDomain parse(const std::string& input);
     };
 }

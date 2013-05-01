@@ -14,7 +14,8 @@ if (BUILD)
     set(LIB_FILES Parser.cpp
     )
 
-    set(LIB_HEADERS Parser.h
+    set(LIB_HEADERS PddlGrammar.h
+                    Parser.h
     )
 
     add_library(${LIB_NAME} SHARED ${LIB_FILES} ${LIB_HEADERS})

@@ -11,7 +11,27 @@
 
 using namespace PddlQi;
 
-int Parser::foo()
+PddlDomain Parser::parse(const std::string& input)
 {
-    return 1;
+    Pddl pddlGrammar;
+
+    PddlDomain domain;
+
+    std::string::const_iterator iter = input.begin();
+    std::string::const_iterator end = input.end();
+
+    bool r = phrase_parse(
+        iter,
+        end,
+        pddlGrammar,
+        boost::spirit::ascii::space,
+        domain
+    );
+
+    if (!r || iter != end)
+    {
+        throw ParserException();
+    }
+
+    return domain;
 }
