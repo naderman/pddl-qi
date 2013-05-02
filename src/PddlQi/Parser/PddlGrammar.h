@@ -83,12 +83,6 @@ namespace PddlQi
         }
     };
 
-    template <typename Inner>
-    const Inner& optional_get_value_or(const boost::optional<Inner>& opt, const Inner& def)
-    {
-        return opt.get_value_or(def);
-    }
-
     void insert_typed_name_entities(TypedNameList& entities, const std::vector<std::string>& names, const std::string& type)
     {
         std::for_each(names.begin(), names.end(), (
@@ -144,22 +138,23 @@ namespace PddlQi
                 ;
             typedList.name("typedList");
 
-            requireDef %=
+            requireDef %= -(
                 lit('(')
                 >> lit(":requirements")
                 > (+(requirementFlagSymbols))
-                > lit(')');
+                > lit(')')
+                );
             requireDef.name("requireDef");
 
-            constantsDef %=
+            constantsDef %= -(
                 lit('(')
                 >> lit(":constants")
                 > typedList(ref(name))
                 > lit(')')
-                ;
+                );
             constantsDef.name("constantsDef");
 
-            predicatesDef =
+            predicatesDef = -(
                 lit('(')
                 >> lit(":predicates")
                 > (+(lit('(')
@@ -168,7 +163,7 @@ namespace PddlQi
                     > lit(')'))[push_back(_val, construct<std::pair<std::string, TypedNameList> >(_a, _b))]
                 )
                 > lit(')')
-                ;
+                );
             predicatesDef.name("predicatesDef");
 
             pddlDomain =
@@ -178,21 +173,9 @@ namespace PddlQi
                 > lit("domain")
                 > name[at_c<0>(_val) = _1]
                 > lit(')')
-                >> (-requireDef)[
-                    at_c<1>(_val) = bind(
-                        &optional_get_value_or<RequirementFlag::VectorType>,
-                        _1, RequirementFlag::VectorType()
-                    )]
-                >> (-constantsDef)[
-                    at_c<2>(_val) = bind(
-                        &optional_get_value_or<TypedNameList>,
-                        _1, TypedNameList()
-                    )]
-                >> (-predicatesDef)[
-                    at_c<3>(_val) = bind(
-                        &optional_get_value_or<PredicateList>,
-                        _1, PredicateList()
-                    )]
+                >> requireDef[at_c<1>(_val) = _1]
+                >> constantsDef[at_c<2>(_val) = _1]
+                >> predicatesDef[at_c<3>(_val) = _1]
                 > lit(')');
             pddlDomain.name("pddlDomain");
 
