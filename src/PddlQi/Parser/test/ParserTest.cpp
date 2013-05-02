@@ -13,10 +13,20 @@
 #include <PddlQi/Test.h>
 #include <PddlQi/Parser/Parser.h>
 
+struct ParserTestFixture
+{
+    ParserTestFixture() {}
+    ~ParserTestFixture() {}
+
+    PddlQi::Parser p;
+    std::string domainString;
+    PddlQi::PddlDomain d;
+};
+
+BOOST_FIXTURE_TEST_SUITE(ParserTests, ParserTestFixture)
+
 BOOST_AUTO_TEST_CASE(ParserFailTrivialInvalid)
 {
-    PddlQi::Parser p;
-
     BOOST_CHECK_THROW(p.parse(""), PddlQi::ParserException);
     BOOST_CHECK_THROW(p.parse(")"), PddlQi::ParserException);
     BOOST_CHECK_THROW(p.parse("(define)"), PddlQi::ParserException);
@@ -24,10 +34,6 @@ BOOST_AUTO_TEST_CASE(ParserFailTrivialInvalid)
 
 BOOST_AUTO_TEST_CASE(ParserDomainName)
 {
-    PddlQi::Parser p;
-    std::string domainString;
-    PddlQi::PddlDomain d;
-
     domainString = std::string("(define (domain foo))");
     d = p.parse(domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
@@ -38,10 +44,6 @@ BOOST_AUTO_TEST_CASE(ParserDomainName)
 
 BOOST_AUTO_TEST_CASE(ParserDomainWhitespace)
 {
-    PddlQi::Parser p;
-    std::string domainString;
-    PddlQi::PddlDomain d;
-
     domainString = std::string("( define\n(\t\tdomain\t foo  )  ) ");
     d = p.parse(domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
@@ -49,10 +51,6 @@ BOOST_AUTO_TEST_CASE(ParserDomainWhitespace)
 
 BOOST_AUTO_TEST_CASE(ParserDomainRequirements)
 {
-    PddlQi::Parser p;
-    std::string domainString;
-    PddlQi::PddlDomain d;
-
     domainString = std::string("(define (domain foo) (:requirements :strips :negative-preconditions))");
     d = p.parse(domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
@@ -61,3 +59,4 @@ BOOST_AUTO_TEST_CASE(ParserDomainRequirements)
     BOOST_CHECK_EQUAL(d.requirements.at(1), PddlQi::RequirementFlag::eNegativePreconditions);
 }
 
+BOOST_AUTO_TEST_SUITE_END()
