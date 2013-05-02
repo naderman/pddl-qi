@@ -44,11 +44,14 @@ namespace PddlQi
 
     typedef std::vector<struct Entity> TypedNameList;
 
+    typedef std::vector<std::pair<std::string, TypedNameList> > PredicateList;
+
     struct PddlDomain
     {
         std::string name;
         RequirementFlag::VectorType requirements;
         TypedNameList constants;
+        PredicateList predicates;
     };
 }
 
@@ -63,6 +66,7 @@ BOOST_FUSION_ADAPT_STRUCT(
     (std::string, name)
     (PddlQi::RequirementFlag::VectorType, requirements)
     (PddlQi::TypedNameList, constants)
+    (PddlQi::PredicateList, predicates)
 )
 
 namespace PddlQi
@@ -101,6 +105,7 @@ namespace PddlQi
         {
             using qi::lexeme;
             using qi::lit;
+            using qi::lazy;
             using qi::on_error;
             using qi::fail;
             using ascii::char_;
@@ -108,25 +113,36 @@ namespace PddlQi
 
             using phoenix::construct;
             using phoenix::val;
+            using phoenix::ref;
             using phoenix::at_c;
             using phoenix::if_else;
             using phoenix::bind;
             using phoenix::push_back;
+            using phoenix::insert;
+            using phoenix::clear;
+            using phoenix::begin;
+            using phoenix::end;
 
             name %=
                 lexeme[char_("a-zA-Z") >> *(char_("a-zA-Z0-9_-"))];
             name.name("name");
 
+            variable %= lit('?') > name;
+            variable.name("variable");
+
             type %= name;
             type.name("type");
 
-            typedNameList =
-                (*((+(name[push_back(_a, _1)]))
+            typedListExplicitType = (+(lazy(_r1)[push_back(_a, _1)]))
                  >> lit('-')
-                 > type[bind(&insert_typed_name_entities, _val, _a, _1)]))
-                >> (*(name[push_back(_val, construct<struct Entity>(_1, "object"))]))
+                 > type[bind(&insert_typed_name_entities, _val, _a, _1)];
+            typedListExplicitType.name("typedListExplicitType");
+
+            typedList =
+                (*(typedListExplicitType(_r1)[insert(_val, end(_val), begin(_1), end(_1))]))
+                >> (*(lazy(_r1)[push_back(_val, construct<struct Entity>(_1, "object"))]))
                 ;
-            typedNameList.name("typedNameList");
+            typedList.name("typedList");
 
             requireDef %=
                 lit('(')
@@ -138,10 +154,22 @@ namespace PddlQi
             constantsDef %=
                 lit('(')
                 >> lit(":constants")
-                > typedNameList
+                > typedList(ref(name))
                 > lit(')')
                 ;
             constantsDef.name("constantsDef");
+
+            predicatesDef =
+                lit('(')
+                >> lit(":predicates")
+                > (+(lit('(')
+                    > name[_a = _1]
+                    >> typedList(ref(variable))[_b = _1]
+                    > lit(')'))[push_back(_val, construct<std::pair<std::string, TypedNameList> >(_a, _b))]
+                )
+                > lit(')')
+                ;
+            predicatesDef.name("predicatesDef");
 
             pddlDomain =
                 lit('(')
@@ -160,6 +188,11 @@ namespace PddlQi
                         &optional_get_value_or<TypedNameList>,
                         _1, TypedNameList()
                     )]
+                >> (-predicatesDef)[
+                    at_c<3>(_val) = bind(
+                        &optional_get_value_or<PredicateList>,
+                        _1, PredicateList()
+                    )]
                 > lit(')');
             pddlDomain.name("pddlDomain");
 
@@ -176,12 +209,18 @@ namespace PddlQi
             );
         }
 
+        typedef qi::rule<Iterator, std::string(), ascii::space_type> StringRule;
+
         qi::rule<Iterator, PddlDomain(), ascii::space_type> pddlDomain;
         qi::rule<Iterator, RequirementFlag::VectorType(), ascii::space_type> requireDef;
         qi::rule<Iterator, TypedNameList(), ascii::space_type> constantsDef;
-        qi::rule<Iterator, TypedNameList(), qi::locals<std::vector<std::string> >, ascii::space_type> typedNameList;
-        qi::rule<Iterator, std::string(), ascii::space_type> type;
-        qi::rule<Iterator, std::string(), ascii::space_type> name;
+        qi::rule<Iterator, PredicateList(), qi::locals<std::string, TypedNameList>, ascii::space_type> predicatesDef;
+        qi::rule<Iterator, TypedNameList(StringRule), ascii::space_type> typedList;
+        qi::rule<Iterator, TypedNameList(StringRule), qi::locals<std::vector<std::string> >, ascii::space_type> typedListExplicitType;
+        StringRule type;
+        StringRule variable;
+        StringRule name;
+
 
         struct RequirementFlagSymbols_ requirementFlagSymbols;
     };
