@@ -27,25 +27,25 @@ BOOST_FIXTURE_TEST_SUITE(ParserTests, ParserTestFixture)
 
 BOOST_AUTO_TEST_CASE(ParserFailTrivialInvalid)
 {
-    BOOST_CHECK_THROW(p.parse(""), PddlQi::ParserException);
-    BOOST_CHECK_THROW(p.parse(")"), PddlQi::ParserException);
-    BOOST_CHECK_THROW(p.parse("(define)"), PddlQi::ParserException);
+    BOOST_CHECK_THROW(p.parseDomain(""), PddlQi::ParserException);
+    BOOST_CHECK_THROW(p.parseDomain(")"), PddlQi::ParserException);
+    BOOST_CHECK_THROW(p.parseDomain("(define)"), PddlQi::ParserException);
 }
 
 BOOST_AUTO_TEST_CASE(ParserDomainName)
 {
     domainString = std::string("(define (domain foo))");
-    d = p.parse(domainString);
+    d = p.parseDomain(domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
 
     domainString = std::string("(define (domain 12foo))");
-    BOOST_CHECK_THROW(p.parse(domainString), PddlQi::ParserException);
+    BOOST_CHECK_THROW(p.parseDomain(domainString), PddlQi::ParserException);
 }
 
 BOOST_AUTO_TEST_CASE(ParserDomainWhitespace)
 {
     domainString = std::string("( define\n(\t\tdomain\t foo  )  ) ");
-    d = p.parse(domainString);
+    d = p.parseDomain(domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
 }
 
@@ -58,7 +58,7 @@ BOOST_AUTO_TEST_CASE(ParseCompleteDomain)
             "(:predicates (foo ?x) (bar ?x ?y) (baz) (typed ?x - typex ?y - typey))\n"
             ")\n");
 
-    d = p.parse(domainString);
+    d = p.parseDomain(domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
 
     BOOST_CHECK_EQUAL(d.requirements.size(), 2);

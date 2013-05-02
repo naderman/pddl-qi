@@ -42,15 +42,20 @@ namespace PddlQi
         Entity(const std::string n, const std::string t) : name(n), type(t) {}
     };
 
-    typedef std::vector<struct Entity> TypedNameList;
+    typedef std::vector<struct Entity> TypedList;
 
-    typedef std::vector<std::pair<std::string, TypedNameList> > PredicateList;
+    typedef std::vector<std::pair<std::string, TypedList> > PredicateList;
+
+    struct PddlAction
+    {
+        std::string name;
+    };
 
     struct PddlDomain
     {
         std::string name;
         RequirementFlag::VectorType requirements;
-        TypedNameList constants;
+        TypedList constants;
         PredicateList predicates;
     };
 }
@@ -62,10 +67,15 @@ BOOST_FUSION_ADAPT_STRUCT(
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
+    PddlQi::PddlAction,
+    (std::string, name)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
     PddlQi::PddlDomain,
     (std::string, name)
     (PddlQi::RequirementFlag::VectorType, requirements)
-    (PddlQi::TypedNameList, constants)
+    (PddlQi::TypedList, constants)
     (PddlQi::PredicateList, predicates)
 )
 
@@ -83,7 +93,7 @@ namespace PddlQi
         }
     };
 
-    void insert_typed_name_entities(TypedNameList& entities, const std::vector<std::string>& names, const std::string& type)
+    void insert_typed_name_entities(TypedList& entities, const std::vector<std::string>& names, const std::string& type)
     {
         std::for_each(names.begin(), names.end(), (
             phoenix::push_back(phoenix::ref(entities), phoenix::construct<struct Entity>(phoenix::arg_names::_1, phoenix::ref(type)))
@@ -91,11 +101,67 @@ namespace PddlQi
     }
 
     template <typename Iterator>
-    struct PddlGrammar :
+    struct ActionGrammar :
+        qi::grammar<Iterator, PddlAction(), ascii::space_type>
+    {
+        ActionGrammar() :
+            ActionGrammar::base_type(pddlAction, "PDDL Action")
+        {
+            using qi::lexeme;
+            using qi::lit;
+            using qi::lazy;
+            using qi::on_error;
+            using qi::fail;
+            using ascii::char_;
+            using namespace qi::labels;
+
+            using phoenix::construct;
+            using phoenix::val;
+            using phoenix::ref;
+            using phoenix::at_c;
+            using phoenix::if_else;
+            using phoenix::bind;
+            using phoenix::push_back;
+            using phoenix::insert;
+            using phoenix::clear;
+            using phoenix::begin;
+            using phoenix::end;
+
+            name %=
+                lexeme[char_("a-zA-Z") >> *(char_("a-zA-Z0-9_-"))];
+            name.name("name");
+
+            pddlAction =
+                lit('(')
+                > lit(";action")
+                > name[at_c<0>(_val) = _1]
+                > lit(')');
+            pddlAction.name("pddlAction");
+
+            on_error<fail>
+            (
+                pddlAction,
+                std::cerr
+                    << val("Parse Error: Expecting ")
+                    << _4
+                    << val(" here: \"")
+                    << construct<std::string>(_3, _2)
+                    << val("\"")
+                    << std::endl
+            );
+        }
+
+        typedef qi::rule<Iterator, std::string(), ascii::space_type> StringRule;
+        qi::rule<Iterator, PddlAction(), ascii::space_type> pddlAction;
+        StringRule name;
+    };
+
+    template <typename Iterator>
+    struct DomainGrammar :
         qi::grammar<Iterator, PddlDomain(), ascii::space_type>
     {
-        PddlGrammar() :
-            PddlGrammar::base_type(pddlDomain, "PDDL Domain")
+        DomainGrammar() :
+            DomainGrammar::base_type(pddlDomain, "PDDL Domain")
         {
             using qi::lexeme;
             using qi::lit;
@@ -160,7 +226,7 @@ namespace PddlQi
                 > (+(lit('(')
                     > name[_a = _1]
                     >> typedList(ref(variable))[_b = _1]
-                    > lit(')'))[push_back(_val, construct<std::pair<std::string, TypedNameList> >(_a, _b))]
+                    > lit(')'))[push_back(_val, construct<std::pair<std::string, TypedList> >(_a, _b))]
                 )
                 > lit(')')
                 );
@@ -196,10 +262,10 @@ namespace PddlQi
 
         qi::rule<Iterator, PddlDomain(), ascii::space_type> pddlDomain;
         qi::rule<Iterator, RequirementFlag::VectorType(), ascii::space_type> requireDef;
-        qi::rule<Iterator, TypedNameList(), ascii::space_type> constantsDef;
-        qi::rule<Iterator, PredicateList(), qi::locals<std::string, TypedNameList>, ascii::space_type> predicatesDef;
-        qi::rule<Iterator, TypedNameList(StringRule), ascii::space_type> typedList;
-        qi::rule<Iterator, TypedNameList(StringRule), qi::locals<std::vector<std::string> >, ascii::space_type> typedListExplicitType;
+        qi::rule<Iterator, TypedList(), ascii::space_type> constantsDef;
+        qi::rule<Iterator, PredicateList(), qi::locals<std::string, TypedList>, ascii::space_type> predicatesDef;
+        qi::rule<Iterator, TypedList(StringRule), ascii::space_type> typedList;
+        qi::rule<Iterator, TypedList(StringRule), qi::locals<std::vector<std::string> >, ascii::space_type> typedListExplicitType;
         StringRule type;
         StringRule variable;
         StringRule name;

@@ -10,28 +10,3 @@
 #include "Parser.h"
 
 using namespace PddlQi;
-
-PddlDomain Parser::parse(const std::string& input)
-{
-    Pddl pddlGrammar;
-
-    PddlDomain domain;
-
-    std::string::const_iterator iter = input.begin();
-    std::string::const_iterator end = input.end();
-
-    bool r = phrase_parse(
-        iter,
-        end,
-        pddlGrammar,
-        boost::spirit::ascii::space,
-        domain
-    );
-
-    if (!r || iter != end)
-    {
-        throw ParserException(input.begin(), iter, end);
-    }
-
-    return domain;
-}
