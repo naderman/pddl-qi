@@ -54,12 +54,12 @@ namespace PddlQi
         public:
             PddlDomain parseDomain(const std::string& input)
             {
-                return parse<DomainGrammar<std::string::const_iterator>, PddlDomain>(input);
+                return parse<Grammar::Domain<std::string::const_iterator>, PddlDomain>(input);
             }
 
             PddlAction parseAction(const std::string& input)
             {
-                return parse<ActionGrammar<std::string::const_iterator>, PddlAction>(input);
+                return parse<Grammar::Action<std::string::const_iterator>, PddlAction>(input);
             }
 
             template <typename Grammar, typename Attribute>

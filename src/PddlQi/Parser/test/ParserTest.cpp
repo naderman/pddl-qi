@@ -20,7 +20,9 @@ struct ParserTestFixture
 
     PddlQi::Parser p;
     std::string domainString;
+    std::string actionString;
     PddlQi::PddlDomain d;
+    PddlQi::PddlAction a;
 };
 
 BOOST_FIXTURE_TEST_SUITE(ParserTests, ParserTestFixture)
@@ -90,6 +92,16 @@ BOOST_AUTO_TEST_CASE(ParseCompleteDomain)
     BOOST_CHECK_EQUAL(d.predicates.at(3).second.at(0).type, "typex");
     BOOST_CHECK_EQUAL(d.predicates.at(3).second.at(1).name, "y");
     BOOST_CHECK_EQUAL(d.predicates.at(3).second.at(1).type, "typey");
+}
+
+BOOST_AUTO_TEST_CASE(ParseAction)
+{
+    actionString = std::string(
+            "(:action foo\n"
+            ")\n");
+
+    a = p.parseAction(actionString);
+    BOOST_CHECK_EQUAL(a.name, "foo");
 }
 
 BOOST_AUTO_TEST_SUITE_END()

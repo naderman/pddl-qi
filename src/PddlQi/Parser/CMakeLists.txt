@@ -14,7 +14,8 @@ if (BUILD)
     set(LIB_FILES Parser.cpp
     )
 
-    set(LIB_HEADERS PddlGrammar.h
+    set(LIB_HEADERS PddlAst.h
+                    PddlGrammar.h
                     Parser.h
     )
 
