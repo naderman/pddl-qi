@@ -70,13 +70,34 @@ namespace PddlQi
         {
             BaseGrammar()
             {
-                name %=
-                    lexeme[char_("a-zA-Z") >> *(char_("a-zA-Z0-9_-"))];
+                name %= lexeme[char_("a-zA-Z") >> *(char_("a-zA-Z0-9_-"))];
                 name.name("name");
+
+                variable %= lit('?') > name;
+                variable.name("variable");
+
+                type %= name;
+                type.name("type");
+
+                typedListExplicitType = (+(lazy(_r1)[push_back(_a, _1)]))
+                     >> lit('-')
+                     > type[bind(&insert_typed_name_entities, _val, _a, _1)];
+                typedListExplicitType.name("typedListExplicitType");
+
+                typedList =
+                    (*(typedListExplicitType(_r1)[insert(_val, end(_val), begin(_1), end(_1))]))
+                    >> (*(lazy(_r1)[push_back(_val, construct<struct Entity>(_1, "object"))]))
+                    ;
+                typedList.name("typedList");
             }
 
             typedef qi::rule<Iterator, std::string(), ascii::space_type> StringRule;
+
+            qi::rule<Iterator, TypedList(StringRule), ascii::space_type> typedList;
+            qi::rule<Iterator, TypedList(StringRule), qi::locals<std::vector<std::string> >, ascii::space_type> typedListExplicitType;
+            StringRule type;
             StringRule name;
+            StringRule variable;
         };
 
         template <typename Iterator>
@@ -120,23 +141,6 @@ namespace PddlQi
             Domain() :
                 Domain::base_type(pddlDomain, "PDDL Domain"), BaseGrammar<Iterator>()
             {
-                variable %= lit('?') > base::name;
-                variable.name("variable");
-
-                type %= base::name;
-                type.name("type");
-
-                typedListExplicitType = (+(lazy(_r1)[push_back(_a, _1)]))
-                     >> lit('-')
-                     > type[bind(&insert_typed_name_entities, _val, _a, _1)];
-                typedListExplicitType.name("typedListExplicitType");
-
-                typedList =
-                    (*(typedListExplicitType(_r1)[insert(_val, end(_val), begin(_1), end(_1))]))
-                    >> (*(lazy(_r1)[push_back(_val, construct<struct Entity>(_1, "object"))]))
-                    ;
-                typedList.name("typedList");
-
                 requireDef %= -(
                     lit('(')
                     >> lit(":requirements")
@@ -148,7 +152,7 @@ namespace PddlQi
                 constantsDef %= -(
                     lit('(')
                     >> lit(":constants")
-                    > typedList(ref(base::name))
+                    > base::typedList(ref(base::name))
                     > lit(')')
                     );
                 constantsDef.name("constantsDef");
@@ -158,7 +162,7 @@ namespace PddlQi
                     >> lit(":predicates")
                     > (+(lit('(')
                         > base::name[_a = _1]
-                        >> typedList(ref(variable))[_b = _1]
+                        >> base::typedList(ref(base::variable))[_b = _1]
                         > lit(')'))[push_back(_val, construct<std::pair<std::string, TypedList> >(_a, _b))]
                     )
                     > lit(')')
@@ -195,11 +199,6 @@ namespace PddlQi
             qi::rule<Iterator, RequirementFlag::VectorType(), ascii::space_type> requireDef;
             qi::rule<Iterator, TypedList(), ascii::space_type> constantsDef;
             qi::rule<Iterator, PredicateList(), qi::locals<std::string, TypedList>, ascii::space_type> predicatesDef;
-            qi::rule<Iterator, TypedList(typename base::StringRule), ascii::space_type> typedList;
-            qi::rule<Iterator, TypedList(typename base::StringRule), qi::locals<std::vector<std::string> >, ascii::space_type> typedListExplicitType;
-            typename base::StringRule type;
-            typename base::StringRule variable;
-
 
             struct RequirementFlagSymbols_ requirementFlagSymbols;
         };
