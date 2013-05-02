@@ -36,3 +36,28 @@ BOOST_AUTO_TEST_CASE(ParserDomainName)
     BOOST_CHECK_THROW(p.parse(domainString), PddlQi::ParserException);
 }
 
+BOOST_AUTO_TEST_CASE(ParserDomainWhitespace)
+{
+    PddlQi::Parser p;
+    std::string domainString;
+    PddlQi::PddlDomain d;
+
+    domainString = std::string("( define\n(\t\tdomain\t foo  )  ) ");
+    d = p.parse(domainString);
+    BOOST_CHECK_EQUAL(d.name, "foo");
+}
+
+BOOST_AUTO_TEST_CASE(ParserDomainRequirements)
+{
+    PddlQi::Parser p;
+    std::string domainString;
+    PddlQi::PddlDomain d;
+
+    domainString = std::string("(define (domain foo) (:requirements :strips :negative-preconditions))");
+    d = p.parse(domainString);
+    BOOST_CHECK_EQUAL(d.name, "foo");
+    BOOST_CHECK_EQUAL(d.requirements.size(), 2);
+    BOOST_CHECK_EQUAL(d.requirements.at(0), PddlQi::RequirementFlag::eStrips);
+    BOOST_CHECK_EQUAL(d.requirements.at(1), PddlQi::RequirementFlag::eNegativePreconditions);
+}
+

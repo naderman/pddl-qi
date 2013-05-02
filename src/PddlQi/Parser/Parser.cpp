@@ -30,7 +30,7 @@ PddlDomain Parser::parse(const std::string& input)
 
     if (!r || iter != end)
     {
-        throw ParserException();
+        throw ParserException(input.begin(), iter, end);
     }
 
     return domain;

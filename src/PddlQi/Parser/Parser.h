@@ -14,10 +14,39 @@ namespace PddlQi
 {
     class ParserException : std::exception
     {
-        virtual const char* what() const throw()
-        {
-            return "Parser Exception";
-        }
+        public:
+            ParserException() : exception()
+            {
+                message = "Unknown ParserException";
+            }
+
+            template <typename Iterator>
+            ParserException(Iterator start, Iterator current, Iterator end) :
+                exception()
+            {
+                message = "Unknown error occured here: ";
+                message += std::string(current, end);
+            }
+
+            ParserException(const ParserException& src)
+            {
+                message = src.message;
+            }
+
+            ParserException& operator=(const ParserException& rhs)
+            {
+                message = rhs.message;
+                return *this;
+            }
+
+            virtual ~ParserException() throw() {}
+
+            virtual const char* what() const throw()
+            {
+                return message.c_str();
+            }
+        protected:
+            std::string message;
     };
 
     class Parser
