@@ -94,13 +94,37 @@ BOOST_AUTO_TEST_CASE(ParseCompleteDomain)
     BOOST_CHECK_EQUAL(d.predicates.at(3).second.at(1).type, "typey");
 }
 
-BOOST_AUTO_TEST_CASE(ParseAction)
+BOOST_AUTO_TEST_CASE(ParseParametersAction)
 {
     actionString = std::string(
             "(:action foo\n"
+            ":parameters (?x ?y ?z)\n"
             ")\n");
 
     a = p.parseAction(actionString);
+    BOOST_CHECK_EQUAL(a.name, "foo");
+}
+
+BOOST_AUTO_TEST_CASE(ParsePreconditionAction)
+{
+    actionString = std::string(
+            "(:action foo\n"
+            ":parameters (?x ?y ?z)\n"
+            ":precondition\n"
+            "    (or\n"
+            "        (and (foo ?x) (foo ?y))\n"
+            "        (not\n"
+            "            (or (bar ?x ?y) (foo ?z))))\n"
+            ")\n");
+
+    try
+    {
+        a = p.parseAction(actionString);
+    } catch (const PddlQi::ParserException& e)
+    {
+        std::cerr << e.what();
+        throw e;
+    }
     BOOST_CHECK_EQUAL(a.name, "foo");
 }
 

@@ -8,6 +8,7 @@
  */
 
 #include <PddlQi/Parser/PddlAst.h>
+#include <PddlQi/Parser/ParserException.h>
 
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_core.hpp>
@@ -89,10 +90,35 @@ namespace PddlQi
                     >> (*(lazy(_r1)[push_back(_val, construct<struct Entity>(_1, "object"))]))
                     ;
                 typedList.name("typedList");
+
+                term = name | variable;
+                term.name("term");
+
+                atomicFormula = lit('(') >> name >> *term >> lit(')');
+                atomicFormula.name("atomicFormula");
+
+                literal = atomicFormula |
+                    (lit('(') >> lit("not") > atomicFormula > lit(')'));
+                literal.name("literal");
+
+                goalDescription =
+                    (lit('(') >> lit("and") >> (*goalDescription) >> lit(')')) |
+                    (lit('(') >> lit("or") >> (*goalDescription) >> lit(')')) |
+                    (lit('(') >> lit("not") >> goalDescription >> lit(')')) |
+                    (lit('(') >> lit("imply") >> goalDescription >> goalDescription >> lit(')')) |
+                    (lit('(') >> lit("exists") > lit('(') >> typedList(ref(variable)) >> lit(')') >> goalDescription >> lit(')')) |
+                    (lit('(') >> lit("forall") > lit('(') >> typedList(ref(variable)) >> lit(')') >> goalDescription >> lit(')')) |
+                    literal |
+                    atomicFormula;
+                goalDescription.name("goalDescription");
             }
 
             typedef qi::rule<Iterator, std::string(), ascii::space_type> StringRule;
 
+            qi::rule<Iterator, void(), ascii::space_type> goalDescription;
+            qi::rule<Iterator, void(), ascii::space_type> literal;
+            qi::rule<Iterator, void(), ascii::space_type> atomicFormula;
+            qi::rule<Iterator, void(), ascii::space_type> term;
             qi::rule<Iterator, TypedList(StringRule), ascii::space_type> typedList;
             qi::rule<Iterator, TypedList(StringRule), qi::locals<std::vector<std::string> >, ascii::space_type> typedListExplicitType;
             StringRule type;
@@ -113,19 +139,21 @@ namespace PddlQi
                     lit('(')
                     > lit(":action")
                     > base::name[at_c<0>(_val) = _1]
+                    > lit(":parameters")
+                    > lit("(")
+                    > base::typedList(ref(base::variable))[at_c<1>(_val) = _1]
+                    > lit(")")
+                    >> -(
+                        lit(":precondition")
+                        >> base::goalDescription
+                    )
                     > lit(')');
                 pddlAction.name("pddlAction");
 
                 on_error<fail>
                 (
                     pddlAction,
-                    std::cerr
-                        << val("Parse Error: Expecting ")
-                        << _4
-                        << val(" here: \"")
-                        << construct<std::string>(_3, _2)
-                        << val("\"")
-                        << std::endl
+                    construct<ParserException>(_4, _1, _2, _3)
                 );
             }
 
@@ -185,13 +213,7 @@ namespace PddlQi
                 on_error<fail>
                 (
                     pddlDomain,
-                    std::cerr
-                        << val("Parse Error: Expecting ")
-                        << _4
-                        << val(" here: \"")
-                        << construct<std::string>(_3, _2)
-                        << val("\"")
-                        << std::endl
+                    construct<ParserException>(_4, _1, _2, _3)
                 );
             }
 

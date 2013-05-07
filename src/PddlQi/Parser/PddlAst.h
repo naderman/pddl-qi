@@ -37,6 +37,7 @@ namespace PddlQi
     struct PddlAction
     {
         std::string name;
+        TypedList parameters;
     };
 
     struct PddlDomain
@@ -57,6 +58,7 @@ BOOST_FUSION_ADAPT_STRUCT(
 BOOST_FUSION_ADAPT_STRUCT(
     PddlQi::PddlAction,
     (std::string, name)
+    (PddlQi::TypedList, parameters)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
