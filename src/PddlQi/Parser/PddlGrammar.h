@@ -111,10 +111,19 @@ namespace PddlQi
                     literal |
                     atomicFormula;
                 goalDescription.name("goalDescription");
+
+                effect =
+                    (lit('(') >> lit("and") >> (*effect) >> lit(')')) |
+                    (lit('(') >> lit("not") >> atomicFormula >> lit(')')) |
+                    atomicFormula |
+                    (lit('(') >> lit("forall") > lit('(') >> *variable >> lit(')') >> effect >> lit(')')) |
+                    (lit('(') >> lit("when") > goalDescription >> effect >> lit(')'));
+                effect.name("effect");
             }
 
             typedef qi::rule<Iterator, std::string(), ascii::space_type> StringRule;
 
+            qi::rule<Iterator, void(), ascii::space_type> effect;
             qi::rule<Iterator, void(), ascii::space_type> goalDescription;
             qi::rule<Iterator, void(), ascii::space_type> literal;
             qi::rule<Iterator, void(), ascii::space_type> atomicFormula;
@@ -146,6 +155,10 @@ namespace PddlQi
                     >> -(
                         lit(":precondition")
                         >> base::goalDescription
+                    )
+                    >> -(
+                        lit(":effect")
+                        >> base::effect
                     )
                     > lit(')');
                 pddlAction.name("pddlAction");

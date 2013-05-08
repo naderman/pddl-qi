@@ -128,4 +128,26 @@ BOOST_AUTO_TEST_CASE(ParsePreconditionAction)
     BOOST_CHECK_EQUAL(a.name, "foo");
 }
 
+BOOST_AUTO_TEST_CASE(ParsePreconditionEffectAction)
+{
+    actionString = std::string(
+            "(:action foo\n"
+            ":parameters (?x ?y ?z)\n"
+            ":precondition\n"
+            "    (and (foo ?x) (foo ?y))\n"
+            ":effect\n"
+            "   (and (not (foo ?x)) (foo ?z))\n"
+            ")\n");
+
+    try
+    {
+        a = p.parseAction(actionString);
+    } catch (const PddlQi::ParserException& e)
+    {
+        std::cerr << e.what();
+        throw e;
+    }
+    BOOST_CHECK_EQUAL(a.name, "foo");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
