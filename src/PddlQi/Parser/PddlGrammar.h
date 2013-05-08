@@ -91,14 +91,15 @@ namespace PddlQi
                     ;
                 typedList.name("typedList");
 
-                term = name | variable;
+                term = name[at_c<0>(_val) = false, at_c<1>(_val) = _1] |
+                    variable[at_c<0>(_val) = true, at_c<1>(_val) = _1];
                 term.name("term");
 
-                atomicFormula = lit('(') >> name >> *term >> lit(')');
+                atomicFormula = lit('(') >> name[at_c<0>(_val) = _1] >> (*term)[at_c<1>(_val) = _1] >> lit(')');
                 atomicFormula.name("atomicFormula");
 
-                literal = atomicFormula |
-                    (lit('(') >> lit("not") > atomicFormula > lit(')'));
+                literal = atomicFormula[at_c<0>(_val) = false, at_c<1>(_val) = _1] |
+                    (lit('(') >> lit("not") > atomicFormula[at_c<0>(_val) = true, at_c<1>(_val) = _1] > lit(')'));
                 literal.name("literal");
 
                 goalDescription =
@@ -125,9 +126,9 @@ namespace PddlQi
 
             qi::rule<Iterator, void(), ascii::space_type> effect;
             qi::rule<Iterator, void(), ascii::space_type> goalDescription;
-            qi::rule<Iterator, void(), ascii::space_type> literal;
-            qi::rule<Iterator, void(), ascii::space_type> atomicFormula;
-            qi::rule<Iterator, void(), ascii::space_type> term;
+            qi::rule<Iterator, Literal(), ascii::space_type> literal;
+            qi::rule<Iterator, AtomicFormula(), ascii::space_type> atomicFormula;
+            qi::rule<Iterator, Term(), ascii::space_type> term;
             qi::rule<Iterator, TypedList(StringRule), ascii::space_type> typedList;
             qi::rule<Iterator, TypedList(StringRule), qi::locals<std::vector<std::string> >, ascii::space_type> typedListExplicitType;
             StringRule type;

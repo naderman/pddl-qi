@@ -34,6 +34,26 @@ namespace PddlQi
 
     typedef std::vector<std::pair<std::string, TypedList> > PredicateList;
 
+    struct Term
+    {
+        bool isVariable;
+        std::string name;
+    };
+
+    typedef std::vector<struct Term> TermList;
+
+    struct AtomicFormula
+    {
+        std::string predicateName;
+        TermList args;
+    };
+
+    struct Literal
+    {
+        bool negate;
+        AtomicFormula atomicFormula;
+    };
+
     struct PddlAction
     {
         std::string name;
@@ -53,6 +73,24 @@ BOOST_FUSION_ADAPT_STRUCT(
     PddlQi::Entity,
     (std::string, name)
     (std::string, type)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    PddlQi::Term,
+    (bool, isVariable)
+    (std::string, name)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    PddlQi::AtomicFormula,
+    (std::string, predicateName)
+    (PddlQi::TermList, args)
+)
+
+BOOST_FUSION_ADAPT_STRUCT(
+    PddlQi::Literal,
+    (bool, negate)
+    (PddlQi::AtomicFormula, atomicFormula)
 )
 
 BOOST_FUSION_ADAPT_STRUCT(
