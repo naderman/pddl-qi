@@ -25,6 +25,30 @@ struct ParserTestFixture
     PddlQi::PddlAction a;
 };
 
+template <typename Grammar, typename Attribute>
+Attribute testParse(PddlQi::Parser& p, const std::string& input)
+{
+    try
+    {
+        return p.parse<Grammar, Attribute>(input);
+    }
+    catch (const PddlQi::ParserException& e)
+    {
+        std::cerr << e.what();
+        throw e;
+    }
+}
+
+PddlQi::PddlDomain testParseDomain(PddlQi::Parser& p, const std::string& input)
+{
+    return testParse<PddlQi::Grammar::Domain<std::string::const_iterator>, PddlQi::PddlDomain>(p, input);
+}
+
+PddlQi::PddlAction testParseAction(PddlQi::Parser& p, const std::string& input)
+{
+    return testParse<PddlQi::Grammar::Action<std::string::const_iterator>, PddlQi::PddlAction>(p, input);
+}
+
 BOOST_FIXTURE_TEST_SUITE(ParserTests, ParserTestFixture)
 
 BOOST_AUTO_TEST_CASE(ParserFailTrivialInvalid)
@@ -37,7 +61,7 @@ BOOST_AUTO_TEST_CASE(ParserFailTrivialInvalid)
 BOOST_AUTO_TEST_CASE(ParserDomainName)
 {
     domainString = std::string("(define (domain foo))");
-    d = p.parseDomain(domainString);
+    d = testParseDomain(p, domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
 
     domainString = std::string("(define (domain 12foo))");
@@ -47,7 +71,7 @@ BOOST_AUTO_TEST_CASE(ParserDomainName)
 BOOST_AUTO_TEST_CASE(ParserDomainWhitespace)
 {
     domainString = std::string("( define\n(\t\tdomain\t foo  )  ) ");
-    d = p.parseDomain(domainString);
+    d = testParseDomain(p, domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
 }
 
@@ -60,7 +84,7 @@ BOOST_AUTO_TEST_CASE(ParseCompleteDomain)
             "(:predicates (foo ?x) (bar ?x ?y) (baz) (typed ?x - typex ?y - typey))\n"
             ")\n");
 
-    d = p.parseDomain(domainString);
+    d = testParseDomain(p, domainString);
     BOOST_CHECK_EQUAL(d.name, "foo");
 
     BOOST_CHECK_EQUAL(d.requirements.size(), 2);
@@ -101,7 +125,7 @@ BOOST_AUTO_TEST_CASE(ParseParametersAction)
             ":parameters (?x ?y ?z)\n"
             ")\n");
 
-    a = p.parseAction(actionString);
+    a = testParseAction(p, actionString);
     BOOST_CHECK_EQUAL(a.name, "foo");
 }
 
@@ -117,14 +141,7 @@ BOOST_AUTO_TEST_CASE(ParsePreconditionAction)
             "            (or (bar ?x ?y) (foo ?z))))\n"
             ")\n");
 
-    try
-    {
-        a = p.parseAction(actionString);
-    } catch (const PddlQi::ParserException& e)
-    {
-        std::cerr << e.what();
-        throw e;
-    }
+    a = testParseAction(p, actionString);
     BOOST_CHECK_EQUAL(a.name, "foo");
 }
 
@@ -139,14 +156,7 @@ BOOST_AUTO_TEST_CASE(ParsePreconditionEffectAction)
             "   (and (not (foo ?x)) (foo ?z))\n"
             ")\n");
 
-    try
-    {
-        a = p.parseAction(actionString);
-    } catch (const PddlQi::ParserException& e)
-    {
-        std::cerr << e.what();
-        throw e;
-    }
+    a = testParseAction(p, actionString);
     BOOST_CHECK_EQUAL(a.name, "foo");
 }
 
