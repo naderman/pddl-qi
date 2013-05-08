@@ -7,6 +7,9 @@
  * file that was distributed with this source code.
  */
 
+#ifndef PDDLQI_PARSER_PDDLAST_H
+#define PDDLQI_PARSER_PDDLAST_H
+
 #include <boost/fusion/include/adapt_struct.hpp>
 
 #include <string>
@@ -112,3 +115,4 @@ BOOST_FUSION_ADAPT_STRUCT(
     (PddlQi::PredicateList, predicates)
 )
 
+#endif

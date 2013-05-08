@@ -7,6 +7,9 @@
  * file that was distributed with this source code.
  */
 
+#ifndef PDDLQI_PARSER_PDDLGRAMMAR_H
+#define PDDLQI_PARSER_PDDLGRAMMAR_H
+
 #include <PddlQi/Parser/PddlAst.h>
 #include <PddlQi/Parser/ParserException.h>
 
@@ -244,3 +247,5 @@ namespace PddlQi
         };
     }
 }
+
+#endif

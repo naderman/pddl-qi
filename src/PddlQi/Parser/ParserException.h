@@ -7,6 +7,9 @@
  * file that was distributed with this source code.
  */
 
+#ifndef PDDLQI_PARSER_PARSEREXCEPTION_H
+#define PDDLQI_PARSER_PARSEREXCEPTION_H
+
 #include <boost/spirit/home/support/info.hpp>
 
 #include <sstream>
@@ -65,3 +68,4 @@ namespace PddlQi
     };
 }
 
+#endif

@@ -7,6 +7,9 @@
  * file that was distributed with this source code.
  */
 
+#ifndef PDDLQI_CLI_CLI_H
+#define PDDLQI_CLI_CLI_H
+
 namespace PddlQi
 {
     class Cli
@@ -15,3 +18,5 @@ namespace PddlQi
             int foo();
     };
 }
+
+#endif

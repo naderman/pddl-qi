@@ -7,6 +7,9 @@
  * file that was distributed with this source code.
  */
 
+#ifndef PDDLQI_PARSER_PARSER_H
+#define PDDLQI_PARSER_PARSER_H
+
 #include <PddlQi/Parser/PddlGrammar.h>
 
 namespace PddlQi
@@ -51,3 +54,5 @@ namespace PddlQi
             }
     };
 }
+
+#endif
