@@ -103,22 +103,26 @@ namespace PddlQi
                 literal.name("literal");
 
                 goalDescription =
-                    (lit('(') >> lit("and") >> (*goalDescription) >> lit(')')) |
-                    (lit('(') >> lit("or") >> (*goalDescription) >> lit(')')) |
-                    (lit('(') >> lit("not") >> goalDescription >> lit(')')) |
-                    (lit('(') >> lit("imply") >> goalDescription >> goalDescription >> lit(')')) |
-                    (lit('(') >> lit("exists") > lit('(') >> typedList(ref(variable)) >> lit(')') >> goalDescription >> lit(')')) |
-                    (lit('(') >> lit("forall") > lit('(') >> typedList(ref(variable)) >> lit(')') >> goalDescription >> lit(')')) |
-                    literal |
-                    atomicFormula;
+                    (lit('(') >>
+                        (     (lit("and") >> (*goalDescription))
+                            | (lit("or") >> (*goalDescription))
+                            | (lit("not") > goalDescription)
+                            | (lit("imply") > goalDescription > goalDescription)
+                            | (lit("exists") > lit('(') >> typedList(ref(variable)) > lit(')') > goalDescription)
+                            | (lit("forall") > lit('(') >> typedList(ref(variable)) > lit(')') > goalDescription))
+                        > lit(')'))
+                    | literal
+                    | atomicFormula;
                 goalDescription.name("goalDescription");
 
                 effect =
-                    (lit('(') >> lit("and") >> (*effect) >> lit(')')) |
-                    (lit('(') >> lit("not") >> atomicFormula >> lit(')')) |
-                    atomicFormula |
-                    (lit('(') >> lit("forall") > lit('(') >> *variable >> lit(')') >> effect >> lit(')')) |
-                    (lit('(') >> lit("when") > goalDescription >> effect >> lit(')'));
+                    (lit('(') >>
+                        (     (lit("and") >> (*effect))
+                            | (lit("not") >> atomicFormula)
+                            | (lit("forall") > lit('(') >> *variable >> lit(')') >> effect)
+                            | (lit("when") > goalDescription >> effect))
+                        > lit(')'))
+                    | atomicFormula;
                 effect.name("effect");
             }
 

@@ -54,6 +54,11 @@ namespace PddlQi
         AtomicFormula atomicFormula;
     };
 
+    struct GoalDescription
+    {
+
+    };
+
     struct PddlAction
     {
         std::string name;
